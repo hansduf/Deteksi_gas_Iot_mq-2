@@ -30,7 +30,7 @@
                 <h2 class="text-3xl font-bold">Dashboard</h2>
                 <div class="flex items-center space-x-4">
                     <span class="text-gray-600">Last updated: <span id="lastUpdate">Just now</span></span>
-                    <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    <button onclick="location.reload()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                         Refresh Data
                     </button>
                 </div>
@@ -40,23 +40,29 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-gray-500 text-sm">Active Devices</h3>
-                    <p class="text-3xl font-bold">12</p>
-                    <p class="text-green-500 text-sm">↑ 2 new this week</p>
+                    <p class="text-3xl font-bold">{{ $activeDevices->count() }}</p>
+                    <p class="text-green-500 text-sm">All systems operational</p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-gray-500 text-sm">Gas Level (Average)</h3>
-                    <p class="text-3xl font-bold">45 PPM</p>
-                    <p class="text-yellow-500 text-sm">⚠️ Above normal</p>
+                    <p class="text-3xl font-bold">{{ number_format($averageGasLevel, 1) }} PPM</p>
+                    <p class="{{ $averageGasLevel > 50 ? 'text-red-500' : 'text-green-500' }} text-sm">
+                        {{ $averageGasLevel > 50 ? '⚠️ Above normal' : 'Normal' }}
+                    </p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-gray-500 text-sm">Active Alerts</h3>
-                    <p class="text-3xl font-bold">3</p>
-                    <p class="text-red-500 text-sm">Requires attention</p>
+                    <p class="text-3xl font-bold">{{ $activeAlerts }}</p>
+                    <p class="{{ $activeAlerts > 0 ? 'text-red-500' : 'text-green-500' }} text-sm">
+                        {{ $activeAlerts > 0 ? 'Requires attention' : 'No alerts' }}
+                    </p>
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-gray-500 text-sm">System Status</h3>
-                    <p class="text-3xl font-bold">Healthy</p>
-                    <p class="text-green-500 text-sm">All systems operational</p>
+                    <p class="text-3xl font-bold">{{ $activeAlerts > 0 ? 'Warning' : 'Healthy' }}</p>
+                    <p class="{{ $activeAlerts > 0 ? 'text-yellow-500' : 'text-green-500' }} text-sm">
+                        {{ $activeAlerts > 0 ? 'Alerts present' : 'All systems operational' }}
+                    </p>
                 </div>
             </div>
 
@@ -79,27 +85,20 @@
                 <div class="p-6">
                     <h3 class="text-lg font-semibold mb-4">Recent Alerts</h3>
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                            <div>
-                                <h4 class="font-semibold text-red-700">High Gas Level Detected</h4>
-                                <p class="text-sm text-gray-600">Device ID: GD-001 | Location: Building A</p>
+                        @forelse($recentAlerts as $alert)
+                            <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                                <div>
+                                    <h4 class="font-semibold text-red-700">High Gas Level Detected</h4>
+                                    <p class="text-sm text-gray-600">
+                                        Device ID: {{ $alert->device_id }} | 
+                                        Location: {{ $alert->location }}
+                                    </p>
+                                </div>
+                                <span class="text-red-500">{{ $alert->created_at->diffForHumans() }}</span>
                             </div>
-                            <span class="text-red-500">2 minutes ago</span>
-                        </div>
-                        <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                            <div>
-                                <h4 class="font-semibold text-yellow-700">Device Maintenance Required</h4>
-                                <p class="text-sm text-gray-600">Device ID: GD-003 | Location: Building B</p>
-                            </div>
-                            <span class="text-yellow-500">15 minutes ago</span>
-                        </div>
-                        <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                            <div>
-                                <h4 class="font-semibold text-yellow-700">Battery Low</h4>
-                                <p class="text-sm text-gray-600">Device ID: GD-007 | Location: Building C</p>
-                            </div>
-                            <span class="text-yellow-500">1 hour ago</span>
-                        </div>
+                        @empty
+                            <div class="text-center text-gray-500 py-4">No recent alerts</div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -121,30 +120,28 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4">GD-001</td>
-                                    <td class="px-6 py-4">Building A</td>
-                                    <td class="px-6 py-4"><span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Alert</span></td>
-                                    <td class="px-6 py-4">85 PPM</td>
-                                    <td class="px-6 py-4">92%</td>
-                                    <td class="px-6 py-4">2 min ago</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4">GD-002</td>
-                                    <td class="px-6 py-4">Building A</td>
-                                    <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Normal</span></td>
-                                    <td class="px-6 py-4">25 PPM</td>
-                                    <td class="px-6 py-4">88%</td>
-                                    <td class="px-6 py-4">5 min ago</td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4">GD-003</td>
-                                    <td class="px-6 py-4">Building B</td>
-                                    <td class="px-6 py-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Warning</span></td>
-                                    <td class="px-6 py-4">45 PPM</td>
-                                    <td class="px-6 py-4">15%</td>
-                                    <td class="px-6 py-4">15 min ago</td>
-                                </tr>
+                                @forelse($activeDevices as $device)
+                                    <tr>
+                                        <td class="px-6 py-4">{{ $device->device_id }}</td>
+                                        <td class="px-6 py-4">{{ $device->location }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 rounded-full text-xs
+                                                @if($device->status === 'normal') bg-green-100 text-green-800
+                                                @elseif($device->status === 'warning') bg-yellow-100 text-yellow-800
+                                                @else bg-red-100 text-red-800
+                                                @endif">
+                                                {{ ucfirst($device->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">{{ $device->gas_level }} PPM</td>
+                                        <td class="px-6 py-4">{{ $device->battery_level }}%</td>
+                                        <td class="px-6 py-4">{{ $device->created_at->diffForHumans() }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No active devices</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -154,15 +151,21 @@
     </div>
 
     <script>
+        // Prepare data for charts
+        const gasLevelLabels = @json($gasLevelTrends->pluck('created_at')->map(function($date) { return $date->format('H:i'); }));
+        const gasLevelValues = @json($gasLevelTrends->pluck('gas_level'));
+        const deviceStatusLabels = @json($deviceStatus->pluck('status'));
+        const deviceStatusValues = @json($deviceStatus->pluck('count'));
+
         // Gas Level Chart
         const gasLevelCtx = document.getElementById('gasLevelChart').getContext('2d');
         new Chart(gasLevelCtx, {
             type: 'line',
             data: {
-                labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                labels: gasLevelLabels,
                 datasets: [{
                     label: 'Gas Level (PPM)',
-                    data: [30, 35, 40, 45, 50, 45, 40, 35],
+                    data: gasLevelValues,
                     borderColor: 'rgb(59, 130, 246)',
                     tension: 0.4
                 }]
@@ -171,7 +174,7 @@
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'top'
                     }
                 }
             }
@@ -182,13 +185,13 @@
         new Chart(deviceStatusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Normal', 'Warning', 'Alert'],
+                labels: deviceStatusLabels,
                 datasets: [{
-                    data: [8, 2, 2],
+                    data: deviceStatusValues,
                     backgroundColor: [
-                        'rgb(34, 197, 94)',
-                        'rgb(234, 179, 8)',
-                        'rgb(239, 68, 68)'
+                        'rgb(34, 197, 94)',  // Normal - Green
+                        'rgb(234, 179, 8)',  // Warning - Yellow
+                        'rgb(239, 68, 68)'   // Alert - Red
                     ]
                 }]
             },
@@ -196,7 +199,7 @@
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'top',
+                        position: 'top'
                     }
                 }
             }
@@ -209,5 +212,20 @@
         }
         setInterval(updateLastUpdate, 1000);
     </script>
+
+    <style>
+        .status-badge {
+            @apply px-2 py-1 rounded-full text-xs;
+        }
+        .status-badge[data-status="normal"] {
+            @apply bg-green-100 text-green-800;
+        }
+        .status-badge[data-status="warning"] {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+        .status-badge[data-status="alert"] {
+            @apply bg-red-100 text-red-800;
+        }
+    </style>
 </body>
 </html> 
